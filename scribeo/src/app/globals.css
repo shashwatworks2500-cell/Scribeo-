@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   SCRIBEO — DESIGN TOKENS  (Tailwind v4, CSS-first @theme)
+   Single source of truth = locked Design Tokens. Values wired verbatim.
+   Missing values are marked TODO (see IMPLEMENTATION_PLAN_V2 Appendix A) and
+   are NOT invented.
+   ============================================================================ */
+
+@theme {
+  /* ---- Fonts (next/font variables applied on <html>) ----------------------
+     Both locked families are loaded. TODO(T4): assign heading vs body roles.
+     Interim: all typography uses --font-sans (Inter); --font-alt (Manrope) is
+     available for when the role split is confirmed. */
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+  --font-alt: var(--font-manrope), var(--font-sans);
+
+  /* ---- Color: Background -------------------------------------------------- */
+  --color-bg-primary: #0b0b0d;
+  --color-bg-secondary: #121316;
+  --color-bg-tertiary: #1a1c20;
+
+  /* ---- Color: Surface ----------------------------------------------------- */
+  --color-surface-base: #15171b;
+  --color-surface-elevated: #1d2025;
+  --color-surface-premium: #242830;
+
+  /* ---- Color: Text -------------------------------------------------------- */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b8bdc7;
+  --color-text-muted: #8c919c;
+  --color-text-disabled: #646973;
+
+  /* ---- Color: Border ------------------------------------------------------ */
+  --color-border-subtle: #2a2e36;
+  --color-border-default: #343944;
+  --color-border-strong: #464d59;
+
+  /* ---- Color: Accent (Brand Gold — accent only, never primary surface) ---- */
+  --color-accent: #d4af37;
+  --color-accent-hover: #e4c35a;
+  --color-accent-active: #b89225;
+
+  /* ---- Color: Status ------------------------------------------------------ */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* ---- Radius ------------------------------------------------------------- */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-round: 999px;
+
+  /* ---- Blur --------------------------------------------------------------- */
+  --blur-light: 8px;
+  --blur-medium: 16px;
+  --blur-heavy: 24px;
+
+  /* ---- Typography scale (DESKTOP sizes — verbatim) ------------------------
+     Weight companions bake the locked weights into each text-* utility.
+     TODO(T2): mobile/tablet sizes or clamp() ramp.
+     TODO(T3): line-heights for H1–Caption (only Display = 1.0 is given). */
+  --text-display: 4.5rem; /* 72px */
+  --text-display--line-height: 1;
+  --text-display--font-weight: 700;
+  --text-h1: 3.5rem; /* 56px */
+  --text-h1--font-weight: 700;
+  --text-h2: 2.75rem; /* 44px */
+  --text-h2--font-weight: 700;
+  --text-h3: 2.125rem; /* 34px */
+  --text-h3--font-weight: 600;
+  --text-h4: 1.625rem; /* 26px */
+  --text-h4--font-weight: 600;
+  --text-body-lg: 1.25rem; /* 20px */
+  --text-body: 1.125rem; /* 18px */
+  --text-sm: 1rem; /* 16px */
+  --text-caption: 0.875rem; /* 14px */
+
+  /* ---- Letter spacing ----------------------------------------------------- */
+  --tracking-heading: -0.02em; /* headings -2% */
+  --tracking-body: 0em; /* body 0% */
+  --tracking-button: 0.02em; /* buttons +2% */
+
+  /* ---- Motion: durations (hard cap 1000ms) -------------------------------- */
+  --duration-micro: 150ms;
+  --duration-standard: 300ms;
+  --duration-large: 600ms;
+  --duration-section-reveal: 700ms;
+  --duration-hero-reveal: 900ms;
+  --duration-page-transition: 900ms;
+
+  /* ---- Motion: easing (easeOutExpo-equivalent) ---------------------------- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---- Motion: scale / stagger -------------------------------------------- */
+  --scale-hover: 1.02;
+  --scale-active: 0.98;
+  --stagger-max: 80ms;
+
+  /* ---- Breakpoints -------------------------------------------------------
+     TODO(T1): pixel boundaries for the named device experiences
+     (mobile · large-phone · tablet-portrait · tablet-landscape · laptop ·
+     desktop). NOT invented. Until supplied, design-breakpoint responsive
+     variants are deferred; do not treat Tailwind defaults as design
+     breakpoints. Interim breakpoints used in the shell are marked in-code. */
+}
+
+/* ============================================================================
+   BASE LAYER
+   ============================================================================ */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  /* Default border color = subtle (v4 defaults borders to currentColor). */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border-subtle);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    letter-spacing: var(--tracking-body);
+  }
+
+  /* Contrast-safe focus: ring offset onto the page background so it stays
+     visible on any element background. Buttons override the color per variant
+     (a gold ring on the gold primary button would be invisible). */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Reduced motion: neutralize non-essential animation globally (defense in
+     depth alongside the JS-level gating in MotionProvider / Lenis). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ============================================================================
+   LENIS (smooth scroll) — recommended base styles. Lenis is applied on
+   pointer-fine/desktop only and disabled under reduced motion (see useLenis).
+   ============================================================================ */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
