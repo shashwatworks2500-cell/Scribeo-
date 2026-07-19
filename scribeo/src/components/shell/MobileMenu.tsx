@@ -1,13 +1,47 @@
 "use client";
 
+import { AnimatePresence, m, type Variants } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { NavItem } from "@/types";
 import { cn } from "@/lib/utils/cn";
-import { buttonStyles, Link } from "@/components/interactive";
+import { buttonStyles } from "@/components/interactive";
+import { useReducedMotionContext } from "@/components/motion/MotionProvider";
+import { DURATION, EASE } from "@/lib/motion/tokens";
+import { NavLink } from "./NavLink";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const PANEL_CLASS = "fixed inset-0 z-50 overflow-y-auto bg-bg-primary px-6 py-6";
+
+const panelVariants: Variants = {
+  hidden: { opacity: 0, y: -8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: DURATION.standard,
+      ease: EASE.standard,
+      when: "beforeChildren",
+      staggerChildren: 0.05,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    transition: { duration: DURATION.standard, ease: EASE.standard },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: DURATION.standard, ease: EASE.outExpo },
+  },
+};
 
 type MobileMenuProps = {
   items: readonly NavItem[];
@@ -15,11 +49,13 @@ type MobileMenuProps = {
 };
 
 /** Accessible mobile navigation: dialog semantics, Escape to close, scroll
- *  lock, focus into panel, and a simple focus trap. Opts out of Lenis via
- *  data-lenis-prevent so the panel scrolls natively. */
+ *  lock, focus trap, focus restore, and Lenis opt-out (data-lenis-prevent).
+ *  Elegant fade/slide + staggered links via Framer; fully static under
+ *  reduced motion. */
 export function MobileMenu({ items, className }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotionContext();
 
   useEffect(() => {
     if (!open) return;
@@ -59,6 +95,52 @@ export function MobileMenu({ items, className }: MobileMenuProps) {
     };
   }, [open]);
 
+  const links = items.map((item) => {
+    const link = (
+      <NavLink
+        href={item.href}
+        className="text-h4"
+        onClick={() => setOpen(false)}
+      >
+        {item.label}
+      </NavLink>
+    );
+    return reduced ? (
+      <div key={item.href}>{link}</div>
+    ) : (
+      <m.div key={item.href} variants={itemVariants}>
+        {link}
+      </m.div>
+    );
+  });
+
+  const panelInner = (
+    <>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setOpen(false)}
+          className={cn(buttonStyles("icon"), "size-11")}
+        >
+          <X aria-hidden="true" />
+        </button>
+      </div>
+      <nav aria-label="Mobile" className="mt-8 flex flex-col gap-6">
+        {links}
+      </nav>
+    </>
+  );
+
+  const panelA11y = {
+    id: "mobile-menu-panel",
+    tabIndex: -1,
+    role: "dialog",
+    "aria-modal": true,
+    "aria-label": "Menu",
+    "data-lenis-prevent": "",
+  } as const;
+
   return (
     <div className={className}>
       <button
@@ -72,44 +154,29 @@ export function MobileMenu({ items, className }: MobileMenuProps) {
         <Menu aria-hidden="true" />
       </button>
 
-      {open ? (
-        <div
-          id="mobile-menu-panel"
-          ref={panelRef}
-          tabIndex={-1}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu"
-          data-lenis-prevent
-          className="fixed inset-0 z-50 overflow-y-auto bg-bg-primary px-6 py-6"
-        >
-          <div className="flex justify-end">
-            <button
-              type="button"
-              aria-label="Close menu"
-              onClick={() => setOpen(false)}
-              className={cn(buttonStyles("icon"), "size-11")}
-            >
-              <X aria-hidden="true" />
-            </button>
+      {reduced ? (
+        open ? (
+          <div ref={panelRef} className={PANEL_CLASS} {...panelA11y}>
+            {panelInner}
           </div>
-          <nav
-            aria-label="Mobile"
-            className="mt-8 flex flex-col gap-6"
-          >
-            {items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="text-h4 text-text-primary transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      ) : null}
+        ) : null
+      ) : (
+        <AnimatePresence>
+          {open ? (
+            <m.div
+              ref={panelRef}
+              className={PANEL_CLASS}
+              variants={panelVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              {...panelA11y}
+            >
+              {panelInner}
+            </m.div>
+          ) : null}
+        </AnimatePresence>
+      )}
     </div>
   );
 }

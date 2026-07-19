@@ -2,14 +2,17 @@ import { navItems } from "@/config/navigation";
 import { SITE } from "@/config/site";
 import { Link } from "@/components/interactive";
 import { PageContainer } from "@/components/primitives/layout";
+import { HeaderScrollShell } from "./HeaderScrollShell";
 import { MobileMenu } from "./MobileMenu";
 import { Navigation } from "./Navigation";
 
-/** Header foundation. Desktop nav / mobile menu switch at an INTERIM breakpoint
- *  (lg) — TODO(T1): replace with the design breakpoint once pixels are supplied. */
+/** Header: transparent at the top, frosted-solid on scroll (HeaderScrollShell).
+ *  Logo + Navigation are Server-rendered and passed through the client shell.
+ *  Desktop nav / mobile menu switch at an INTERIM breakpoint (lg) —
+ *  TODO(T1): replace with the design breakpoint once pixels are supplied. */
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border-subtle bg-bg-primary/80 backdrop-blur-[var(--blur-medium)]">
+    <HeaderScrollShell>
       <PageContainer className="flex h-16 items-center justify-between">
         <Link
           href="/"
@@ -21,6 +24,6 @@ export function Header() {
         <Navigation items={navItems} className="hidden lg:flex" />
         <MobileMenu items={navItems} className="lg:hidden" />
       </PageContainer>
-    </header>
+    </HeaderScrollShell>
   );
 }
