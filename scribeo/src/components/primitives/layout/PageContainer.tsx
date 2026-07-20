@@ -8,8 +8,7 @@ type PageContainerProps<T extends ElementType> = {
 } & Omit<ComponentPropsWithoutRef<"div">, "className" | "children">;
 
 /** Centered page container. Max content width 1320px.
- *  Container padding: mobile 24px (base). TODO(T1): tablet (48px) / desktop
- *  (96px) breakpoint-gated padding once breakpoint pixels are supplied. */
+ *  Container padding: 24 / 48 / 96 at base / md / lg (Tailwind breakpoints). */
 export function PageContainer<T extends ElementType = "div">({
   as,
   className,
@@ -19,7 +18,10 @@ export function PageContainer<T extends ElementType = "div">({
   const Component = (as ?? "div") as ElementType;
   return (
     <Component
-      className={cn("mx-auto w-full max-w-[1320px] px-6", className)}
+      className={cn(
+        "mx-auto w-full max-w-[1320px] px-6 md:px-12 lg:px-24",
+        className,
+      )}
       {...rest}
     >
       {children}
